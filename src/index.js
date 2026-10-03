@@ -525,7 +525,7 @@ app.post("/admin/login", async (c) => {
   setCookie(c, "admin_session", token, {
     httpOnly: true,
     secure: c.env.ENVIRONMENT === "production",
-    sameSite: "Strict",
+    sameSite: "None",
     path: "/",
     maxAge: 60 * 60 * 24,
   });
