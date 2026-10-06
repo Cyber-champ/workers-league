@@ -129,7 +129,7 @@ app.post("/submission", async (c) => {
     console.error(
       "Razorpay order creation failed:",
       await razorpayResponse.text(),
-    );
+    );id
 
     return c.json(
       {
@@ -504,6 +504,88 @@ app.post("/webhook/razorpay", async (c) => {
 
     return c.json({ message: "Webhook processing failed" }, 500);
   }
+});
+
+app.post("/reviews", async (c) => {
+  const data = await c.req.json();
+
+  const response = await fetch(
+    `${c.env.SUPABASE_URL}/rest/v1/reviews`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${c.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: c.env.SUPABASE_SERVICE_ROLE_KEY,
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(data),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+
+    return c.json(
+      {
+        error: "Failed to submit review",
+        details: error,
+      },
+      response.status,
+    );
+  }
+
+  const review = await response.json();
+
+  return c.json(review, 201);
+});
+
+app.get("/reviews", async (c) => {
+  const page = Number(c.req.query("page") || 1);
+  const limit = Number(c.req.query("limit") || 10);
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const response = await fetch(
+    `${c.env.SUPABASE_URL}/rest/v1/reviews?select=*&order=created_at.desc`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${c.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: c.env.SUPABASE_SERVICE_ROLE_KEY,
+        Range: `${from}-${to}`,
+        Prefer: "count=exact",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+
+    return c.json(
+      {
+        error: "Failed to fetch reviews",
+        details: error,
+      },
+      response.status,
+    );
+  }
+
+  const reviews = await response.json();
+
+  const contentRange = response.headers.get("Content-Range");
+  const total = contentRange
+    ? Number(contentRange.split("/")[1])
+    : null;
+
+  return c.json({
+    reviews,
+    page,
+    limit,
+    total,
+    totalPages: total !== null ? Math.ceil(total / limit) : null,
+  });
 });
 
 app.post("/admin/login", async (c) => {
