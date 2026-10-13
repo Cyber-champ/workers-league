@@ -202,7 +202,7 @@ app.post("/payment/verify", async (c) => {
   const response = await fetch(
     `${c.env.SUPABASE_URL}/rest/v1/players` +
       `?razorpay_order_id=eq.${encodeURIComponent(razorpay_order_id)}` +
-      `&select=id,registration_id,payment_status,razorpay_order_id`,
+      `&select=id,registration_id,payment_status,razorpay_order_id,player_name,category,proficiency,email`,
     {
       headers: {
         apikey: c.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -305,7 +305,7 @@ app.post("/payment/verify", async (c) => {
       "X-Mail-Service-Key": c.env.EMAIL_SECRET,
     },
     body: JSON.stringify({
-      playerName: player.name,
+      playerName: player.player_name,
       registrationId: player.registration_id,
       category: player.category,
       proficiency: player.proficiency.join(", "),
