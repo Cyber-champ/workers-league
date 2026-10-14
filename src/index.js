@@ -339,7 +339,7 @@ app.post("/webhook/razorpay", async (c) => {
 
     const key = await crypto.subtle.importKey(
       "raw",
-      encoder.encode(c.env.RAZORPAY_KEY_SECRET),
+      encoder.encode(c.env.RAZORPAY_WEBHOOK_SECRET),
       {
         name: "HMAC",
         hash: "SHA-256",
